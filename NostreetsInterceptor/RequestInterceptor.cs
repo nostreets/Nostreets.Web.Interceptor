@@ -1,11 +1,12 @@
-﻿using Microsoft.Practices.Unity;
-using Nostreets_Services.Utilities;
+﻿using NostreetsExtensions;
+using NostreetsExtensions.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
+using Unity;
 
 namespace NostreetsInterceptor
 {
@@ -36,7 +37,7 @@ namespace NostreetsInterceptor
 
     }
 
-    public static class Interceptor
+    static class Interceptor
     {
         /*
          Item 1: Specific Type Key
@@ -75,7 +76,7 @@ namespace NostreetsInterceptor
 
                         if (route != null)
                         {
-                            object target = ((MethodInfo)validator.Item2).DeclaringType.UnityInstantiate(Extend.ExternalContainer());
+                            object target = ((MethodInfo)validator.Item2).DeclaringType.UnityInstantiate(ExternalContainer());
 
                             result.Add(new Tuple<string, object, string, MethodInfo>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2));
                         }
@@ -85,6 +86,16 @@ namespace NostreetsInterceptor
                 return result;
             }
         }
+
+        static UnityContainer ExternalContainer()
+        {
+            MethodInfo methodInfo = (MethodInfo)"UnityConfig.GetContainer".ScanAssembliesForObject(new[] { "NostreetsInterceptor" });
+
+            UnityContainer result = (UnityContainer)methodInfo.Invoke("UnityConfig".ScanAssembliesForObject(new[] { "NostreetsInterceptor" }).Instantiate(), null) ?? null;
+
+            return result;
+        }
+
     }
 
     public class GenericModule : IHttpModule
