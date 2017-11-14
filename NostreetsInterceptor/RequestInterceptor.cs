@@ -6,7 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
-using Unity;
+using Microsoft.Practices.Unity;
+
 
 namespace NostreetsInterceptor
 {
@@ -89,9 +90,10 @@ namespace NostreetsInterceptor
 
         static UnityContainer ExternalContainer()
         {
-            MethodInfo methodInfo = (MethodInfo)"UnityConfig.GetContainer".ScanAssembliesForObject(new[] { "NostreetsInterceptor" });
+            MethodInfo methodInfo = (MethodInfo)"UnityConfig.GetContainer".ScanAssembliesForObject();
+            object unityConfig = "UnityConfig".ScanAssembliesForObject().Instantiate();
 
-            UnityContainer result = (UnityContainer)methodInfo.Invoke("UnityConfig".ScanAssembliesForObject(new[] { "NostreetsInterceptor" }).Instantiate(), null) ?? null;
+            UnityContainer result = (UnityContainer)methodInfo.Invoke(unityConfig, null);
 
             return result;
         }
