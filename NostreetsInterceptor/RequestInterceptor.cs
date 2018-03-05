@@ -2,12 +2,10 @@
 using NostreetsExtensions.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
-using Microsoft.Practices.Unity;
-
+using Unity;
 
 namespace NostreetsInterceptor
 {
@@ -20,6 +18,7 @@ namespace NostreetsInterceptor
         }
 
         public string Type { get { return _type; } }
+
         private string _type = "Any";
 
     }
@@ -30,10 +29,10 @@ namespace NostreetsInterceptor
         public ValidatorAttribute(string type = "Any")
         {
             _type = type;
-
         }
 
         public string Type { get { return _type; } }
+
         private string _type = "Any";
 
     }
@@ -52,12 +51,9 @@ namespace NostreetsInterceptor
             {
                 List<Tuple<string, object, string, MethodInfo>> result = new List<Tuple<string, object, string, MethodInfo>>();
 
-                List<Tuple<InterceptAttribute, object>> interceptors = new List<Tuple<InterceptAttribute, object>>();
-                List<Tuple<ValidatorAttribute, object>> validators = new List<Tuple<ValidatorAttribute, object>>();
 
-
-                validators = validators.GetObjectsWithAttribute(ClassTypes.Methods);
-                interceptors = interceptors.GetObjectsWithAttribute(ClassTypes.Methods);
+                List<Tuple<ValidatorAttribute, object, Assembly>> validators = new List<Tuple<ValidatorAttribute, object, Assembly>>().GetObjectsWithAttribute(ClassTypes.Methods);
+                List<Tuple<InterceptAttribute, object, Assembly>> interceptors = new List<Tuple<InterceptAttribute, object, Assembly>>().GetObjectsWithAttribute(ClassTypes.Methods);
 
 
                 foreach (var validator in validators)
@@ -77,7 +73,10 @@ namespace NostreetsInterceptor
 
                         if (route != null)
                         {
-                            object target = ((MethodInfo)validator.Item2).DeclaringType.UnityInstantiate(ExternalContainer());
+
+                            object target = ((MethodInfo)validator.Item2).DeclaringType.WindsorResolve(validator.Item3.GetWindsorContainer());
+
+
 
                             result.Add(new Tuple<string, object, string, MethodInfo>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2));
                         }
@@ -97,7 +96,6 @@ namespace NostreetsInterceptor
 
             return result;
         }
-
     }
 
     public class GenericModule : IHttpModule
