@@ -1,4 +1,5 @@
-﻿using NostreetsExtensions;
+﻿using Castle.Windsor;
+using NostreetsExtensions;
 using NostreetsExtensions.Utilities;
 using System;
 using System.Collections.Generic;
@@ -74,8 +75,21 @@ namespace NostreetsInterceptor
                         if (route != null)
                         {
 
-                            object target = ((MethodInfo)validator.Item2).DeclaringType.WindsorResolve(validator.Item3.GetWindsorContainer());
+                            Type targetType = ((MethodInfo)validator.Item2).DeclaringType;
+                            object container = validator.Item3.GetWindsorContainer(),
+                                   target = null;
 
+                            if (container == null)
+                                container = validator.Item3.GetUnityContainer();
+
+                            bool resovled = (container.GetType().HasInterface<IWindsorContainer>())
+                                            ? targetType.TryWindsorResolve((IWindsorContainer)container, out target)
+                                            : (container.GetType().HasInterface<IUnityContainer>())
+                                            ? targetType.TryUnityResolve((IUnityContainer)container, out target) 
+                                            : false;
+
+                            if (!resovled)
+                                target = targetType.Instantiate();
 
 
                             result.Add(new Tuple<string, object, string, MethodInfo>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2));
@@ -87,15 +101,6 @@ namespace NostreetsInterceptor
             }
         }
 
-        static UnityContainer ExternalContainer()
-        {
-            MethodInfo methodInfo = (MethodInfo)"UnityConfig.GetContainer".ScanAssembliesForObject();
-            object unityConfig = "UnityConfig".ScanAssembliesForObject().Instantiate();
-
-            UnityContainer result = (UnityContainer)methodInfo.Invoke(unityConfig, null);
-
-            return result;
-        }
     }
 
     public class GenericModule : IHttpModule
@@ -115,12 +120,12 @@ namespace NostreetsInterceptor
 
                         continue;
                     }
-                } 
+                }
             }
         }
 
         public void Dispose() { }
     }
 
-    
+
 }
