@@ -38,9 +38,9 @@ namespace NostreetsInterceptor
 
     }
 
-    static class Interceptor
+    static class Linker
     {
-        static Interceptor()
+        static Linker()
         {
             _methods = GetMethods();
         }
@@ -106,13 +106,13 @@ namespace NostreetsInterceptor
         }
     }
 
-    public class GenericModule : IHttpModule
+    public class RequestInterceptor : IHttpModule
     {
         public void Init(HttpApplication app)
         {
-            if (Interceptor.Methods != null && Interceptor.Methods.Count > 0)
+            if (Linker.Methods != null && Linker.Methods.Count > 0)
             {
-                foreach (Tuple<string, object, string, MethodInfo> item in Interceptor.Methods)
+                foreach (Tuple<string, object, string, MethodInfo> item in Linker.Methods)
                 {
                     try
                     {
