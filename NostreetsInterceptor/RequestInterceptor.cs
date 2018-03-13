@@ -10,31 +10,37 @@ using Unity;
 
 namespace NostreetsInterceptor
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
     public class InterceptAttribute : Attribute
     {
-        public InterceptAttribute(string type = "Any")
+        public InterceptAttribute(string type = null, string eventName = null)
         {
-            _type = type;
+            _type = type ?? _type;
+            _event = eventName ?? _event;
         }
 
-        public string Type { get { return _type; } }
+        public string Type { get => _type; }
+        public string Event { get => _event; }
 
         private string _type = "Any";
+        private string _event = "PreRequestHandlerExecute";
 
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class ValidatorAttribute : Attribute
     {
-        public ValidatorAttribute(string type = "Any")
+        public ValidatorAttribute(string type = null, string eventName = null)
         {
-            _type = type;
+            _type = type ?? _type;
+            _event = eventName ?? _event;
         }
 
-        public string Type { get { return _type; } }
+        public string Type { get => _type;  }
+        public string Event { get => _event; }
 
         private string _type = "Any";
+        private string _event = "PreRequestHandlerExecute";
 
     }
 
@@ -44,19 +50,20 @@ namespace NostreetsInterceptor
         {
             _methods = GetMethods();
         }
-        static List<Tuple<string, object, string, MethodInfo>> _methods = null;
+        static List<Tuple<string, object, string, MethodInfo, string>> _methods = null;
 
         /*
          Item 1: Specific Type Key
          Item 2: Target Object that contains specified Method
          Item 3: Specific Route
          Item 4: Method to run
+         Item 5: Event to run on
              */
-        public static List<Tuple<string, object, string, MethodInfo>> Methods { get { return _methods; } }
+        public static List<Tuple<string, object, string, MethodInfo, string>> Methods { get { return _methods; } }
 
-        private static List<Tuple<string, object, string, MethodInfo>> GetMethods()
+        private static List<Tuple<string, object, string, MethodInfo, string>> GetMethods()
         {
-            List<Tuple<string, object, string, MethodInfo>> result = new List<Tuple<string, object, string, MethodInfo>>();
+            List<Tuple<string, object, string, MethodInfo, string>> result = new List<Tuple<string, object, string, MethodInfo, string>>();
 
 
             List<Tuple<ValidatorAttribute, object, Assembly>> validators = new List<Tuple<ValidatorAttribute, object, Assembly>>().GetObjectsWithAttribute(ClassTypes.Methods);
@@ -98,7 +105,7 @@ namespace NostreetsInterceptor
                             target = targetType.Instantiate();
 
 
-                        result.Add(new Tuple<string, object, string, MethodInfo>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2));
+                        result.Add(new Tuple<string, object, string, MethodInfo, string>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2, validator.Item1.Event));
                     }
                 }
             }
@@ -112,11 +119,15 @@ namespace NostreetsInterceptor
         {
             if (Linker.Methods != null && Linker.Methods.Count > 0)
             {
-                foreach (Tuple<string, object, string, MethodInfo> item in Linker.Methods)
+                foreach (Tuple<string, object, string, MethodInfo, string> item in Linker.Methods)
                 {
                     try
                     {
-                        app.PreRequestHandlerExecute += new EventHandler((a, b) => { if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3)) { item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a }); } });
+                        app.GetEvent(item.Item5)
+                            .AddEventHandler(app,
+                            new EventHandler((a, b) => { if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3)) { item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a }); } }));
+
+                        //app.PreRequestHandlerExecute += new EventHandler((a, b) => { if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3)) { item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a }); } });
                     }
                     catch (Exception)
                     {
