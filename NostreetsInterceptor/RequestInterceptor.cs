@@ -6,23 +6,25 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
+using Mvc = System.Web.Mvc;
 using Unity;
+using System.Linq;
 
 namespace NostreetsInterceptor
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
     public class InterceptAttribute : Attribute
     {
-        public InterceptAttribute(string type = null, string eventName = null)
+        public InterceptAttribute(string id = null, string eventName = null)
         {
-            _type = type ?? _type;
+            _id = id ?? _id;
             _event = eventName ?? _event;
         }
 
-        public string Type { get => _type; }
+        public string ID { get => _id; }
         public string Event { get => _event; }
 
-        private string _type = "Any";
+        private string _id = "Any";
         private string _event = "PreRequestHandlerExecute";
 
     }
@@ -30,16 +32,16 @@ namespace NostreetsInterceptor
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class ValidatorAttribute : Attribute
     {
-        public ValidatorAttribute(string type = null, string eventName = null)
+        public ValidatorAttribute(string id = null, string eventName = null)
         {
-            _type = type ?? _type;
+            _id = id ?? _id;
             _event = eventName ?? _event;
         }
 
-        public string Type { get => _type;  }
+        public string ID { get => _id; }
         public string Event { get => _event; }
 
-        private string _type = "Any";
+        private string _id = "Any";
         private string _event = "PreRequestHandlerExecute";
 
     }
@@ -66,24 +68,37 @@ namespace NostreetsInterceptor
             List<Tuple<string, object, string, MethodInfo, string>> result = new List<Tuple<string, object, string, MethodInfo, string>>();
 
 
-            List<Tuple<ValidatorAttribute, object, Assembly>> validators = new List<Tuple<ValidatorAttribute, object, Assembly>>().GetObjectsWithAttribute(ClassTypes.Methods);
-            List<Tuple<InterceptAttribute, object, Assembly>> interceptors = new List<Tuple<InterceptAttribute, object, Assembly>>().GetObjectsWithAttribute(ClassTypes.Methods);
+            //List<Type> areas = Extend.GetTypesByAttribute<Mvc.RouteAreaAttribute>();
+
+            List<Tuple<RoutePrefixAttribute, object, Assembly>> prefixes = Extend.GetObjectsWithAttribute<RoutePrefixAttribute>(ClassTypes.Type);
+            List<Tuple<ValidatorAttribute, object, Assembly>> validators = Extend.GetObjectsWithAttribute<ValidatorAttribute>(ClassTypes.Methods);
+            List<Tuple<InterceptAttribute, object, Assembly>> interceptors = Extend.GetObjectsWithAttribute<InterceptAttribute>(ClassTypes.Methods);
 
 
             foreach (var validator in validators)
             {
                 foreach (var interceptor in interceptors)
                 {
-                    if (interceptor.Item1.Type != validator.Item1.Type) { continue; }
+                    if (interceptor.Item1.ID != validator.Item1.ID) { continue; }
 
                     string route = null;
-                    foreach (Attribute attr in ((MethodInfo)interceptor.Item2).GetCustomAttributes())
+                    if (prefixes.Any(a => ((Type)a.Item2).GetMethods().Any(b => b == (MethodInfo)interceptor.Item2)))
                     {
-                        if (attr.GetType() == typeof(RouteAttribute))
+                        Type[] typePrefixes = prefixes.Where(a => ((Type)a.Item2).GetMethods().Where(b => b == (MethodInfo)interceptor.Item2) != null)
+                                                      .Select(a => (Type)a.Item2).ToArray();
+
+                        foreach (Type type in typePrefixes)
                         {
-                            route = ((RouteAttribute)attr).Template;
+                            string prefix = type.GetCustomAttribute<RoutePrefixAttribute>().Prefix;
+
+                            if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>() != null)
+                                route = prefix + '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
                         }
                     }
+                    else
+                        if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>() != null)
+                        route = ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
+
 
                     if (route != null)
                     {
@@ -105,11 +120,11 @@ namespace NostreetsInterceptor
                             target = targetType.Instantiate();
 
 
-                        result.Add(new Tuple<string, object, string, MethodInfo, string>(validator.Item1.Type, target, route, (MethodInfo)validator.Item2, validator.Item1.Event));
+                        result.Add(new Tuple<string, object, string, MethodInfo, string>(validator.Item1.ID, target, route, (MethodInfo)validator.Item2, validator.Item1.Event));
                     }
                 }
             }
-                return result;
+            return result;
         }
     }
 
@@ -125,9 +140,15 @@ namespace NostreetsInterceptor
                     {
                         app.GetEvent(item.Item5)
                             .AddEventHandler(app,
-                            new EventHandler((a, b) => { if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3)) { item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a }); } }));
-
-                        //app.PreRequestHandlerExecute += new EventHandler((a, b) => { if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3)) { item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a }); } });
+                                new EventHandler((a, b) =>
+                                {
+                                    if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3))
+                                    {
+                                        item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a });
+                                    }
+                                }
+                            )
+                        );
                     }
                     catch (Exception)
                     {
