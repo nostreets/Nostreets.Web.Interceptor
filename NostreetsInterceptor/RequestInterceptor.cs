@@ -84,20 +84,20 @@ namespace NostreetsInterceptor
                     string route = null;
                     if (prefixes.Any(a => ((Type)a.Item2).GetMethods().Any(b => b == (MethodInfo)interceptor.Item2)))
                     {
-                        Type[] typePrefixes = prefixes.Where(a => ((Type)a.Item2).GetMethods().Where(b => b == (MethodInfo)interceptor.Item2) != null)
+                        Type[] typePrefixes = prefixes.Where(a => ((Type)a.Item2).GetMethods().Where(b => b == (MethodInfo)interceptor.Item2).Count() > 0)
                                                       .Select(a => (Type)a.Item2).ToArray();
 
                         foreach (Type type in typePrefixes)
                         {
                             string prefix = type.GetCustomAttribute<RoutePrefixAttribute>().Prefix;
 
-                            if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>() != null)
-                                route = prefix + '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
+                            if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Count() > 0)
+                                route = '/' + prefix + '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
                         }
                     }
                     else
-                        if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>() != null)
-                        route = ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
+                        if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Count() > 0)
+                            route = '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
 
 
                     if (route != null)
