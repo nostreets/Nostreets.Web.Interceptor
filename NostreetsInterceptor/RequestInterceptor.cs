@@ -68,8 +68,6 @@ namespace NostreetsInterceptor
             List<Tuple<string, object, string, MethodInfo, string>> result = new List<Tuple<string, object, string, MethodInfo, string>>();
 
 
-            //List<Type> areas = Extend.GetTypesByAttribute<Mvc.RouteAreaAttribute>();
-
             List<Tuple<RoutePrefixAttribute, object, Assembly>> prefixes = Extend.GetObjectsWithAttribute<RoutePrefixAttribute>(ClassTypes.Type);
             List<Tuple<ValidatorAttribute, object, Assembly>> validators = Extend.GetObjectsWithAttribute<ValidatorAttribute>(ClassTypes.Methods);
             List<Tuple<InterceptAttribute, object, Assembly>> interceptors = Extend.GetObjectsWithAttribute<InterceptAttribute>(ClassTypes.Methods);
@@ -152,7 +150,6 @@ namespace NostreetsInterceptor
                     }
                     catch (Exception)
                     {
-
                         continue;
                     }
                 }
