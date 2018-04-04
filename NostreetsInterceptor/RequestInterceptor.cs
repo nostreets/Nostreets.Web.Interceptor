@@ -140,7 +140,7 @@ namespace NostreetsInterceptor
                             .AddEventHandler(app,
                                 new EventHandler((a, b) =>
                                 {
-                                    if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path.Contains(item.Item3))
+                                    if (((HttpApplication)a).Request != null && ((HttpApplication)a).Request.Path == item.Item3)
                                     {
                                         item.Item4.Invoke(item.Item2, new[] { (HttpApplication)a });
                                     }
