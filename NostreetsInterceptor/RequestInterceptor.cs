@@ -67,9 +67,9 @@ namespace NostreetsInterceptor
             List<Tuple<string, object, string, MethodInfo, string>> result = new List<Tuple<string, object, string, MethodInfo, string>>();
 
 
-            List<Tuple<RoutePrefixAttribute, object, Assembly>> prefixes = Static.GetObjectsWithAttribute<RoutePrefixAttribute>(ClassTypes.Type);
-            List<Tuple<ValidatorAttribute, object, Assembly>> validators = Static.GetObjectsWithAttribute<ValidatorAttribute>(ClassTypes.Methods);
-            List<Tuple<InterceptAttribute, object, Assembly>> interceptors = Static.GetObjectsWithAttribute<InterceptAttribute>(ClassTypes.Methods);
+            List<Tuple<RoutePrefixAttribute, object, Assembly>> prefixes = Static.GetObjectsWithAttribute<RoutePrefixAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Type);
+            List<Tuple<ValidatorAttribute, object, Assembly>> validators = Static.GetObjectsWithAttribute<ValidatorAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
+            List<Tuple<InterceptAttribute, object, Assembly>> interceptors = Static.GetObjectsWithAttribute<InterceptAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
 
 
             foreach (var validator in validators)
