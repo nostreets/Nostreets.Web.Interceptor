@@ -1,5 +1,4 @@
 ﻿using Castle.Windsor;
-using NostreetsExtensions;
 using NostreetsExtensions.Utilities;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,8 @@ using System.Web;
 using System.Web.Http;
 using Unity;
 using System.Linq;
+using NostreetsExtensions.Extend.Basic;
+using NostreetsExtensions.Extend.IOC;
 
 namespace NostreetsInterceptor
 {
@@ -68,13 +69,13 @@ namespace NostreetsInterceptor
 
 
             List<Tuple<RoutePrefixAttribute, object, Assembly>> prefixes = 
-                Static.GetObjectsWithAttribute<RoutePrefixAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Type);
+                Basic.GetObjectsWithAttribute<RoutePrefixAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Type);
 
             List<Tuple<ValidatorAttribute, object, Assembly>> validators = 
-                Static.GetObjectsWithAttribute<ValidatorAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
+                Basic.GetObjectsWithAttribute<ValidatorAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
 
             List<Tuple<InterceptAttribute, object, Assembly>> interceptors = 
-                Static.GetObjectsWithAttribute<InterceptAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
+                Basic.GetObjectsWithAttribute<InterceptAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
 
 
             foreach (var validator in validators)
