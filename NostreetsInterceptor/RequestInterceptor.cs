@@ -17,16 +17,12 @@ namespace NostreetsInterceptor
     {
         public InterceptAttribute(string id = null, string eventName = null)
         {
-            _id = id ?? _id;
-            _event = eventName ?? _event;
+            ID = id ?? ID;
+            Event = eventName ?? Event;
         }
 
-        public string ID { get => _id; }
-        public string Event { get => _event; }
-
-        private string _id = "Any";
-        private string _event = "PreRequestHandlerExecute";
-
+        public string ID { get; } = "Any";
+        public string Event { get; } = "PreRequestHandlerExecute";
     }
 
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
@@ -34,25 +30,20 @@ namespace NostreetsInterceptor
     {
         public ValidatorAttribute(string id = null, string eventName = null)
         {
-            _id = id ?? _id;
-            _event = eventName ?? _event;
+            ID = id ?? ID;
+            Event = eventName ?? Event;
         }
 
-        public string ID { get => _id; }
-        public string Event { get => _event; }
-
-        private string _id = "Any";
-        private string _event = "PreRequestHandlerExecute";
-
+        public string ID { get; } = "Any";
+        public string Event { get; } = "PreRequestHandlerExecute";
     }
 
     static class Linker
     {
         static Linker()
         {
-            _methods = GetMethods();
+            Methods = GetMethods();
         }
-        static List<Tuple<string, object, string, MethodInfo, string>> _methods = null;
 
         /*
          Item 1: Specific Type Key
@@ -61,7 +52,7 @@ namespace NostreetsInterceptor
          Item 4: Method to run
          Item 5: Event to run on
              */
-        public static List<Tuple<string, object, string, MethodInfo, string>> Methods { get { return _methods; } }
+        public static List<Tuple<string, object, string, MethodInfo, string>> Methods { get; private set; } = null;
 
         private static List<Tuple<string, object, string, MethodInfo, string>> GetMethods()
         {
