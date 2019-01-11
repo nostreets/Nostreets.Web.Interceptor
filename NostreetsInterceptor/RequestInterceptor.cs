@@ -68,12 +68,27 @@ namespace NostreetsInterceptor
             List<Tuple<InterceptAttribute, object, Assembly>> interceptors = 
                 Basic.GetObjectsWithAttribute<InterceptAttribute>(a => a.FullName.Contains("Nostreets"), ClassTypes.Methods);
 
+            bool isAMatch(InterceptAttribute interceptor, ValidatorAttribute validator)
+            {
+                bool isMatch = false;
+                string[] seperators = new[] { ",", ", ", " , ", " ,", "  ,  "};
+
+                foreach (string seperator in seperators) {
+                    isMatch = interceptor.ID.Contains(",") ? interceptor.ID.Split(",").Any(a => a == validator.ID) : interceptor.ID != validator.ID;
+                    if (isMatch)
+                        break;
+                }
+
+                return isMatch;
+            }
+
 
             foreach (var validator in validators)
             {
                 foreach (var interceptor in interceptors)
                 {
-                    if (interceptor.Item1.ID != validator.Item1.ID) { continue; }
+                    if (/*interceptor.Item1.ID != validator.Item1.ID*/
+                        isAMatch(interceptor.Item1, validator.Item1)) { continue; }
 
                     string route = null;
                     if (prefixes.Any(a => ((Type)a.Item2).GetMethods().Any(b => b == (MethodInfo)interceptor.Item2)))
