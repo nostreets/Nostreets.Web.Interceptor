@@ -101,12 +101,12 @@ namespace NostreetsInterceptor
                             string prefix = type.GetCustomAttribute<RoutePrefixAttribute>().Prefix;
 
                             if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Count() > 0)
-                                route = '/' + prefix + '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
+                                route = '/' + prefix + '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().First().Template;
                         }
                     }
                     else
                         if (((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Count() > 0)
-                            route = '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().Single().Template;
+                            route = '/' + ((MethodInfo)interceptor.Item2).GetCustomAttributes<RouteAttribute>().First().Template;
 
 
                     if (route != null)
