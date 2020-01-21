@@ -1,5 +1,5 @@
 ﻿using Castle.Windsor;
-using NostreetsExtensions.Utilities;
+using Nostreets.Extensions.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -7,10 +7,10 @@ using System.Web;
 using System.Web.Http;
 using Unity;
 using System.Linq;
-using NostreetsExtensions.Extend.Basic;
-using NostreetsExtensions.Extend.IOC;
+using Nostreets.Extensions.Extend.Basic;
+using Nostreets.Extensions.Extend.IOC;
 
-namespace NostreetsInterceptor
+namespace Nostreets.Web.Interceptor
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
     public class InterceptAttribute : Attribute
